@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal Document Library</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fb;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #1f2937;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+      color: #1f2937;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    .doc-item {
+      background-color: white;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .doc-info {
+      flex-grow: 1;
+    }
+
+    .doc-actions button {
+      margin-left: 5px;
+    }
+
+    footer {
+      background-color: #e5e7eb;
+      text-align: center;
+      padding: 10px;
+      color: #444;
+      margin-top: 20px;
+    }
+
+    .search-section {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .search-section input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Legal Document Library</h1>
+    <p>Kantor Hukum Aswandy J. Pohan & Partners</p>
+  </header>
+
+  <main>
+    <section class="input-section">
+      <h2>Tambah Dokumen Baru</h2>
+      <div class="form-group">
+        <input type="text" id="docTitle" placeholder="Judul Dokumen" />
+        <input type="text" id="docCategory" placeholder="Kategori (misal: Perdata, Pidana...)" />
+        <textarea id="docNote" placeholder="Catatan atau deskripsi singkat"></textarea>
+        <button id="addDoc">Simpan Dokumen</button>
+      </div>
+    </section>
+
+    <section class="search-section">
+      <input type="text" id="searchInput" placeholder="Cari dokumen berdasarkan judul atau kategori..." />
+    </section>
+
+    <section class="list-section">
+      <h2>Daftar Dokumen</h2>
+      <div id="docList" class="doc-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Kantor Hukum Aswandy J. Pohan & Partners — Sistem Arsip Digital</p>
+  </footer>
+
+  <script>
+    const addBtn = document.getElementById("addDoc");
+    const titleInput = document.getElementById("docTitle");
+    const categoryInput = document.getElementById("docCategory");
+    const noteInput = document.getElementById("docNote");
+    const docList = document.getElementById("docList");
+    const searchInput = document.getElementById("searchInput");
+
+    let documents = JSON.parse(localStorage.getItem("legalDocs")) || [];
+
+    function saveDocs() {
+      localStorage.setItem("legalDocs", JSON.stringify(documents));
+    }
+
+    function renderDocs(filter = "") {
+      docList.innerHTML = "";
+      documents
+        .filter(d =>
+          d.title.toLowerCase().includes(filter.toLowerCase()) ||
+          d.category.toLowerCase().includes(filter.toLowerCase())
+        )
+        .forEach((d, i) => {
+          const div = document.createElement("div");
+          div.classList.add("doc-item");
+          div.innerHTML = `
+            <div class="doc-info">
+              <strong>${d.title}</strong><br>
+              <em>Kategori: ${d.category}</em><br>
+              <p>${d.note}</p>
+            </div>
+            <div class="doc-actions">
+              <button onclick="editDoc(${i})">Edit</button>
+              <button onclick="deleteDoc(${i})">Hapus</button>
+            </div>
+          `;
+          docList.appendChild(div);
+        });
+    }
+
+    function addDoc() {
+      const title = titleInput.value.trim();
+      const category = categoryInput.value.trim();
+      const note = noteInput.value.trim();
+      if (!title || !category) {
+        alert("Judul dan kategori wajib diisi!");
+        return;
+      }
+      documents.push({ title, category, note });
+      saveDocs();
+      renderDocs();
+      titleInput.value = "";
+      categoryInput.value = "";
+      noteInput.value = "";
+    }
+
+    function editDoc(index) {
+      const d = documents[index];
+      const newTitle = prompt("Ubah Judul:", d.title);
+      const newCategory = prompt("Ubah Kategori:", d.category);
+      const newNote = prompt("Ubah Catatan:", d.note);
+      if (newTitle && newCategory) {
+        documents[index] = { title: newTitle, category: newCategory, note: newNote };
+        saveDocs();
+        renderDocs();
+      }
+    }
+
+    function deleteDoc(index) {
+      if (confirm("Yakin ingin menghapus dokumen ini?")) {
+        documents.splice(index, 1);
+        saveDocs();
+        renderDocs();
+      }
+    }
+
+    addBtn.addEventListener("click", addDoc);
+    searchInput.addEventListener("input", (e) => renderDocs(e.target.value));
+
+    renderDocs();
+  </script>
+</body>
+</html>
